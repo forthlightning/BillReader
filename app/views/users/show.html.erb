@@ -1,0 +1,27 @@
+<script type='text/javascript'>
+  if (typeof <%=raw @bill.to_json %> != 'undefined') {
+  	var array = <%=raw @bill.to_json %>
+  	processData(array);  
+  }
+</script> 
+
+<h2>Hallo <%= @user.name %>!<h2>
+<p><%= link_to "Homepage", root_path %></p>
+
+
+<% if @bill %>
+	<p>Interval Data</p>
+	<div id = 'graph'></div>
+<% else %>
+
+<div>
+	<h4>Give me ur data pls</h4>
+
+	<%= form_tag import_users_path, multipart: true do %>
+		<%= file_field_tag :file %>
+		<%= hidden_field_tag 'id', @user.id %>
+		<%= submit_tag "Import CSV" %>
+	<% end %>
+</div> 
+
+<% end %>

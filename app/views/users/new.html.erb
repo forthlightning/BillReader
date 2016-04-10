@@ -1,0 +1,16 @@
+<h1>OKAY, Hallo we are going to add a user</h1>
+
+<%= form_for :user, url: users_path do |f| %>
+
+  <div class="field">
+    <%= f.label :name %><br>
+    <%= f.text_field :name %>
+  </div>
+
+  <div>
+  	<%= f.label 'this is a survey do you like?' %><br>
+    <%= f.text_field :survey %>
+  <div class="actions">
+    <%= f.submit %>
+  </div>
+<% end %>
