@@ -10,7 +10,7 @@ class User < ActiveRecord::Base
 		data_arr = []
 
 		while i < rows.size-2 do
-
+			puts rows[i][1]
 			date = Time.strptime(rows[i][1],"%D")
 			date_sec = date.to_i
 
@@ -32,4 +32,6 @@ class User < ActiveRecord::Base
 
 		Bill.create!(@hash)
 	end
+
+	%x'python process_data.py'
 end
