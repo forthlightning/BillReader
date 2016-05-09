@@ -20,14 +20,18 @@
 var processData = function(data) {
 	out = []
 	var dataArray = JSON.parse(data.data)
-	for (var i = 0; i < dataArray.length-1; i++) {
+	var fittedArray = JSON.parse(data.data_fit)
+
+	for (var i = 0; i < Math.min(fittedArray.length, dataArray.length); i++) {
 
 		dataArray[i][0] = parseInt(dataArray[i][0])*1000 // convert to mils
 		dataArray[i][1] = parseFloat(dataArray[i][1])
+		fittedArray[i] = parseFloat(fittedArray[i])
 		
 		out.push({
 			date_mils: dataArray[i][0],
-			use: dataArray[i][1]
+			use: dataArray[i][1],
+			fitted: fittedArray[i]
 		})
 	}
 }

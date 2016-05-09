@@ -8,6 +8,10 @@ jQuery ->
   element: 'graph',
   data: out,
   xkey: 'date_mils',
-  ykeys: ['use'],
-  labels: ['kWh']
+  ykeys: ['use', 'fitted'],
+  labels: ['kWh', 'prediction']
+  lineColors: ['blue','green']
+  pointSize: [1,1]
+  lineWidth: [2,2]
+
 }) if (typeof out != 'undefined');

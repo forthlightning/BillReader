@@ -1,5 +1,6 @@
 <script type='text/javascript'>
   if (typeof <%=raw @bill.to_json %> != 'undefined') {
+  	console.log(<%=raw @bill.to_json %>)
   	var array = <%=raw @bill.to_json %>
   	processData(array);  
   }

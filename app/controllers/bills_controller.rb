@@ -1,14 +1,5 @@
 class BillsController < ApplicationController
 
-	def import
-		puts @user
-
-		Bill.import(params[:file])
-
-		redirect_to "users#show", notice: "Products imported."
-	end
-
-	
 	private
 
 		def set_bill

@@ -4,6 +4,9 @@ class User < ActiveRecord::Base
 	require 'csv'
 
 	def self.import(file, user_id)
+
+		#TODO use iter to return lines until the end
+		#TODO make interpretation of csv more robust to weird inputs
   	
 		rows = CSV.read(file.path)
 		i = 6
@@ -33,5 +36,4 @@ class User < ActiveRecord::Base
 		Bill.create!(@hash)
 	end
 
-	%x'python process_data.py'
 end

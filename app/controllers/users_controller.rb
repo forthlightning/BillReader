@@ -45,6 +45,8 @@ class UsersController < ApplicationController
 		User.import(params[:file],params[:id])
 
 		redirect_to root_url, notice: "Products imported."
+		
+		%x'python process_data.py'
 
 	end
 
