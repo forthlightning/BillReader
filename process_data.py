@@ -189,18 +189,8 @@ def next_prediction_generator(model, X, steps, series):
 
 	while i < steps:
 		n_plus_one = model.predict(X[i].reshape(1,-1))
-		print n_plus_one
-		yield n_plus_one
+		yield n_plus_one[0]
 		i += 1
-
-	# print "current window",current_window
-	# while i < steps:
-	# 	n_plus_one = model.predict(current_window.reshape(1,-1))
-	# 	yield n_plus_one
-	# 	trim_window = np.delete(current_window, 0)
-	# 	new_window = np.concatenate([trim_window, n_plus_one[0]])
-	# 	i += 1
-	# 	current_window = new_window
 
 def big_x_small_y(series, index, window):
  	
