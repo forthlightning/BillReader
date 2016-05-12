@@ -7,33 +7,45 @@ class User < ActiveRecord::Base
 
 		#TODO use iter to return lines until the end
 		#TODO make interpretation of csv more robust to weird inputs
-  	
-		rows = CSV.read(file.path)
-		i = 6
-		data_arr = []
+  		
 
-		while i < rows.size-2 do
-			puts rows[i][1]
-			date = Time.strptime(rows[i][1],"%D")
-			date_sec = date.to_i
 
-			hour = rows[i][2].split(":").first
-			hour_sec = hour.to_i * 3600
+  		begin 
+			rows = CSV.read(file.path)
+			i = 6
+			data_arr = []
 
-			tot_sec = (date_sec + hour_sec).to_s
+			puts Date.parse(rows[i][1])
+			date = Date.strptime(rows[i][1], "%Y-%m-%d")
 
-			data_arr << [tot_sec, rows[i][4]]
+		rescue
+			date = Date.strptime(rows[i][1], "%m/%d/%Y")
+		ensure
 
-			i += 1
+
+			while i < rows.size-7 do
+
+				date_sec = date.strftime("%s").to_i
+
+				hour = rows[i][2].split(":").first
+				hour_sec = hour.to_i * 3600
+
+				tot_sec = (date_sec + hour_sec).to_s
+
+				data_arr << [tot_sec, rows[i][4]]
+
+				i += 1
+
+			end
+
+			data_str = JSON.generate(data_arr)
+
+			@hash = {:data => data_str, :user_id => user_id}
+
+	#		puts @user.id
+
+			Bill.create!(@hash)
+
 		end
-
-		data_str = JSON.generate(data_arr)
-
-		@hash = {:data => data_str, :user_id => user_id}
-
-#		puts @user.id
-
-		Bill.create!(@hash)
 	end
-
 end

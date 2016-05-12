@@ -17,21 +17,24 @@
 //= require raphael
 //= require morris
 
-var processData = function(data) {
+var processData = function(array) {
 	out = []
-	var dataArray = JSON.parse(data.data)
-	var fittedArray = JSON.parse(data.data_fit)
+
+	var dataArray = JSON.parse(array.data)
+	var fittedArray = JSON.parse(array.data_fit)
 
 	for (var i = 0; i < Math.min(fittedArray.length, dataArray.length); i++) {
 
-		dataArray[i][0] = parseInt(dataArray[i][0])*1000 // convert to mils
-		dataArray[i][1] = parseFloat(dataArray[i][1])
-		fittedArray[i] = parseFloat(fittedArray[i])
+		// dataArray[i][0] = parseInt(rawDataArray[i][0])*1000 // convert to mils
+		// dataArray[i][1] = parseFloat(rawDataArray[i][1])
+
+		// fittedArray[i] = parseFloat(rawFittedArray[i])
 		
 		out.push({
-			date_mils: dataArray[i][0],
-			use: dataArray[i][1],
-			fitted: fittedArray[i]
+			date_mils: parseInt(dataArray[i][0])*1000,
+			use: parseFloat(dataArray[i][1]),
+			fitted: parseFloat(fittedArray[i])
 		})
 	}
+	console.log(fittedArray)
 }
