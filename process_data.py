@@ -2,10 +2,8 @@ import sqlite3
 import json
 import pandas as pd
 import numpy as np
-from numpy.lib import stride_tricks
 import matplotlib.pyplot as plt
 import time
-from sklearn.linear_model import LinearRegression
 from sklearn import neighbors
 from sklearn.metrics import mean_squared_error
 import statistics as stat
@@ -58,9 +56,6 @@ def organize_data(series):
 		y, the target values for each row of X
 	"""
 
-	# Set number of prev hours of load to take into account here
-	window = 24
-
 	prev_loads_list = np.zeros([len(series)-window, window])
 	times_list = np.zeros([len(series)-window, 24])
 	y = np.zeros([len(series)-window, 1])
@@ -83,26 +78,6 @@ def organize_data(series):
 		times_list[i-window] = time_vector
 
 	return y, X, prev_loads_list, times_list, dates
-
-def plot_and_RMS(predictions, target, n, title):
-	idx = 0
-	RMSs = []
-	for i in predictions:
-		plt.figure(figsize=(20,6))
-		plt.plot(i[-500:])
-		plt.plot(target[-500:])
-		RMS = sqrt(mean_squared_error(target,i))
-		RMSs.append(RMS)
-		mean = stat.mean(target)
-		stddev = stat.stdev(target)
-		plt.title('%s n = %d, RMS = %f, mean = %f, stdev = %f' % (title, n[idx],RMS, mean, stddev))
-		print 'title: %s, mean: %s' % (title, mean)
-		print 'title: %s, stdev: %s' % (title, stddev)
-		print 'title: %s, RMS: %s' % (title, RMS)
-		plt.show()
-		idx += 1
-
-	return
 
 def update_db(model):
 	con = sqlite3.connect('db/development.sqlite3')
@@ -133,7 +108,7 @@ def update_db(model):
 
 	# save data as string and write to DB
 	fit_string = json.dumps(AR_pred_list)
-	print(cur.execute('UPDATE bills SET data_fit = ? WHERE user_id = ?', (fit_string, data[0])))
+	cur.execute('UPDATE bills SET data_fit = ? WHERE user_id = ?', (fit_string, data[0]))
 	con.commit()
 	con.close()
 
@@ -150,8 +125,10 @@ def do_autoregressive_prediction(model, steps, time_vector_list, load_history):
 
 		yield t_plus_one
 
-		clip_array = np.delete(recent_load, 0).reshape(-1,1)
-		new_x = np.concatenate((clip_array, t_plus_one, time_vector_list[i+1].reshape(-1,1)))
+		clip_array = np.delete(recent_load, (0,1)).reshape(-1,1)
+		print load_history[i]
+		real_point = load_history[i][-(window-1)]
+		new_x = np.concatenate((real_point.reshape(1,1), clip_array, t_plus_one, time_vector_list[i+1].reshape(-1,1)))
 
 		t_plus_one = model.predict(new_x.reshape(1,-1))
 
@@ -178,11 +155,19 @@ def main():
 
 	# organize, fit, predict
 	y0, X0, prev_load_list, times_list, dates = organize_data(training_data)
-	main_model = neighbors.KNeighborsRegressor(40, weights = 'distance')
+	main_model = neighbors.KNeighborsRegressor(num_neighbors, weights = 'distance')
+
+	print "Model Made @ %f" % (time.clock())
+
 	main_model.fit(X0,y0.reshape(-1,1))
-	pred = main_model.predict(X0)
 
 	print "Model Fit @ %f" % (time.clock())
+
+	pred = main_model.predict(X0)
+
+	'''
+
+	this does a prediction on training set
 
 	# make AR prediction generator
 	AR_predictor = do_autoregressive_prediction(main_model, steps, times_list, prev_load_list)
@@ -195,6 +180,10 @@ def main():
 	# squish all into array
 	AR_prediction = np.concatenate(temp)
 
+	'''
+
+	print "Update DB Start @ %f" % (time.clock())
+
 	# save db stuff for plotting
 	X_db, y_db, pred_db, series_db = update_db(main_model)
 
@@ -205,26 +194,30 @@ def main():
 
 	all_at_once = main_model.predict(X_db[-(start_point+steps):])
 
-	print "Real Data, AR_Prediction, All At Once"
-	for i in range(len(real_data.values)):
-		print real_data.values[i], AR_prediction[i][0], all_at_once[i][0]
+	# print "Real Data, AR_Prediction, All At Once"
+	# for i in range(len(real_data.values)):
+	# 	print real_data.values[i], AR_prediction[i][0], all_at_once[i][0]
 
 	plt.plot(real_data.values, color = 'b', label = "Real Data" )
-	plt.plot(pred_db, color = 'r', label = "Predicted Data, RMS: %f" % (sqrt(mean_squared_error(real_data, AR_prediction))))
+	plt.plot(pred_db, color = 'r', label = "Predicted Data, RMS: %f" % (sqrt(mean_squared_error(real_data, pred_db))))
 	plt.plot(all_at_once, color = 'g', label = "All At Once, RMS: %f" % (sqrt(mean_squared_error(real_data, all_at_once))))
 	plt.legend()
+	plt.xlim(0,steps)
 	plt.ylabel('kW')
-	plt.xlabel('Hourly Interval Data')
-	plt.title('IDK Anymore')
+	plt.xlabel('Hour')
+	plt.title('Power Draw - Window: %d, Neighbors: %d' % (window, num_neighbors))
+
+	print "Plots Plotted @ %f" % (time.clock())
+
 	plt.show()
 
 	return main_model, y0, X0, training_data
 
-
+window = 12
 steps = 96
+num_neighbors = 10
 start_point = 0
 
-window = 12 # sets size of window for striding array
 main_model, y0, X0, training_data = main()
 
 		
